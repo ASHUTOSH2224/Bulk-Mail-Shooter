@@ -109,7 +109,7 @@ function App() {
       if (pdfFile) {
         formData.append('file', pdfFile);
       }
-      const res = await fetch('http://localhost:8000/send-emails-with-attachment', {
+      const res = await fetch('https://bulk-mail-shooter.onrender.com/send-emails-with-attachment', {
         method: 'POST',
         body: formData,
       });

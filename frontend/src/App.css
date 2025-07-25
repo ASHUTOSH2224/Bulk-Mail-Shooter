@@ -1,0 +1,98 @@
+#root {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  padding: 2rem 2.5rem;
+  margin-top: 2rem;
+}
+
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.email-form label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-weight: 500;
+  gap: 0.3rem;
+}
+
+.email-form input,
+.email-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-top: 0.2rem;
+  resize: vertical;
+}
+
+.email-form button {
+  background: #646cff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.email-form button:disabled {
+  background: #b3b7ff;
+  cursor: not-allowed;
+}
+
+.success {
+  color: #1a7f37;
+  background: #e6f4ea;
+  border: 1px solid #b7e4c7;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-top: 1.2rem;
+}
+
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-top: 1.2rem;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+  color: #646cff;
+}
+
+.form-section {
+  margin-bottom: 1.2rem;
+}
+
+.field-label {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 0.1rem;
+}
+
+.field-helper {
+  display: block;
+  font-size: 0.97rem;
+  color: #888;
+  margin-bottom: 0.3rem;
+}

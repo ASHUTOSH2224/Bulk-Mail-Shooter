@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel, EmailStr
-from typing import List
+from typing import List, Optional
 import aiosmtplib
 from email.message import EmailMessage
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,12 +32,14 @@ class EmailRequest(BaseModel):
     body: str
     recipients: List[EmailStr]
 
-async def send_email(subject: str, body: str, recipient: str):
+async def send_email(subject: str, body: str, recipient: str, attachment: Optional[bytes] = None, filename: Optional[str] = None):
     message = EmailMessage()
     message["From"] = GMAIL_USER
     message["To"] = recipient
     message["Subject"] = subject
     message.set_content(body, subtype='html')
+    if attachment and filename:
+        message.add_attachment(attachment, maintype='application', subtype='pdf', filename=filename)
     try:
         await aiosmtplib.send(
             message,
@@ -51,15 +53,31 @@ async def send_email(subject: str, body: str, recipient: str):
     except Exception as e:
         logging.error(f"Failed to send to {recipient}: {e}")
 
-async def send_bulk_emails(subject: str, body: str, recipients: List[str]):
+async def send_bulk_emails_with_attachment(subject: str, body: str, recipients: List[str], attachment: Optional[bytes], filename: Optional[str]):
     for recipient in recipients:
-        await send_email(subject, body, recipient)
+        await send_email(subject, body, recipient, attachment, filename)
         await asyncio.sleep(5)
 
-@app.post("/send-emails")
-async def send_emails(request: EmailRequest, background_tasks: BackgroundTasks):
-    logging.info(f"Received request: {request}")
-    if len(request.recipients) > 1000:
+@app.post("/send-emails-with-attachment")
+async def send_emails_with_attachment(
+    background_tasks: BackgroundTasks,
+    subject: str = Form(...),
+    body: str = Form(...),
+    recipients: str = Form(...),  # Comma-separated emails
+    file: UploadFile = File(None)
+):
+    logging.info(f"Received request with attachment: subject={subject}, recipients={recipients}")
+    recipients_list = [email.strip() for email in recipients.split(',') if email.strip()]
+    if len(recipients_list) > 1000:
         raise HTTPException(status_code=400, detail="Recipient list exceeds 1000 emails.")
-    background_tasks.add_task(send_bulk_emails, request.subject, request.body, request.recipients)
-    return {"message": f"Sending email to {len(request.recipients)} recipients."} 
+    attachment_bytes = await file.read() if file else None
+    filename = file.filename if file else None
+    background_tasks.add_task(
+        send_bulk_emails_with_attachment,
+        subject,
+        body,
+        recipients_list,
+        attachment_bytes,
+        filename
+    )
+    return {"message": f"Sending email to {len(recipients_list)} recipients with attachment."} 

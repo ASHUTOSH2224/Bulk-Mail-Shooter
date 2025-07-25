@@ -22,6 +22,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -69,6 +70,17 @@ function App() {
     }
   };
 
+  const handlePdfChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setPdfFile(file);
+    } else {
+      setPdfFile(null);
+      if (file) setError('Only PDF files are allowed for attachment.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -90,10 +102,16 @@ function App() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8000/send-emails', {
+      const formData = new FormData();
+      formData.append('subject', subject);
+      formData.append('body', body);
+      formData.append('recipients', emails.join(','));
+      if (pdfFile) {
+        formData.append('file', pdfFile);
+      }
+      const res = await fetch('http://localhost:8000/send-emails-with-attachment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body, recipients: emails }),
+        body: formData,
       });
       const data = await res.json();
       if (res.ok) {
@@ -102,6 +120,7 @@ function App() {
         setBody('');
         setRecipients('');
         setFileEmails([]);
+        setPdfFile(null);
       } else {
         setError(data.detail || 'Failed to send emails.');
       }
@@ -120,7 +139,7 @@ function App() {
   return (
     <div className="container">
       <h1>Email Shooter</h1>
-      <form onSubmit={handleSubmit} className="email-form">
+      <form onSubmit={handleSubmit} className="email-form" encType="multipart/form-data">
         <div className="form-section">
           <label htmlFor="subject-input">
             <span className="field-label">Subject</span>
@@ -172,6 +191,19 @@ function App() {
               accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
               onChange={handleFileUpload}
             />
+          </label>
+        </div>
+        <div className="form-section">
+          <label htmlFor="pdf-attachment-input">
+            <span className="field-label">PDF Attachment (optional)</span>
+            <span className="field-helper">Attach a PDF file to include in your email.</span>
+            <input
+              id="pdf-attachment-input"
+              type="file"
+              accept="application/pdf"
+              onChange={handlePdfChange}
+            />
+            {pdfFile && <span style={{ fontSize: '0.95rem', color: '#555' }}>Selected: {pdfFile.name}</span>}
           </label>
         </div>
         <div style={{ fontSize: '0.95rem', color: '#555', marginBottom: '0.5rem' }}>
